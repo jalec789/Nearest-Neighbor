@@ -1,17 +1,18 @@
-import javax.swing.plaf.IconUIResource;
 import java.io.*;
-import java.nio.Buffer;
-import java.nio.DoubleBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class nearestNeighbor {
 
 
     static void backward_search(ArrayList<ArrayList<Double>> data){
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter("excel_output.txt", "UTF-8");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         ArrayList<Integer>current_set_of_features = new ArrayList<>();
         //init all features to the set
         for (int i = 1; i < data.get(0).size(); i++) {
@@ -51,11 +52,13 @@ public class nearestNeighbor {
 
             System.out.println("Feature set " + current_set_of_features + " was best, accuracy is "
                     + String.format("%,.1f", (best_so_far_accuracy*100)) + "%");
+            writer.println(current_set_of_features + "\t" + String.format("%,.1f", (best_so_far_accuracy*100)));
             if(best_so_far_accuracy > overall_best_accuracy){
                 overall_best_accuracy = best_so_far_accuracy;
                 overall_best_set = new ArrayList<>(current_set_of_features);
             }
         }
+        writer.close();
 
         System.out.println("Finished search!! The best feature subset is " + overall_best_set
                 + ", which has an accuracy of " + String.format("%,.1f", (overall_best_accuracy*100)) + "%");
@@ -141,6 +144,14 @@ public class nearestNeighbor {
 
 
     static void forward_search(ArrayList<ArrayList<Double>> data){
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter("excel_output.txt", "UTF-8");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         ArrayList<Integer>current_set_of_features = new ArrayList<>();//Init empty set
         //I think this is a single value...
         Integer feature_to_add_at_this_level = null;
@@ -175,11 +186,13 @@ public class nearestNeighbor {
 
             System.out.println("Feature set " + current_set_of_features + " was best, accuracy is "
                     + String.format("%,.1f", (best_so_far_accuracy*100)) + "%");
+            writer.println(current_set_of_features + "\t" + String.format("%,.1f", (best_so_far_accuracy*100)));
             if(best_so_far_accuracy > overall_best_accuracy){
                 overall_best_accuracy = best_so_far_accuracy;
                 overall_best_set = new ArrayList<>(current_set_of_features);
             }
         }
+        writer.close();
         System.out.println("Finished search!! The best feature subset is " + overall_best_set
                 + ", which has an accuracy of " + String.format("%,.1f", (overall_best_accuracy*100)) + "%");
     }
@@ -317,8 +330,8 @@ public class nearestNeighbor {
         ArrayList<ArrayList<Double>> table = load("CS170_SMALLtestdata__1.txt");
 //        ArrayList<ArrayList<Double>> table = load("CS170_small_special_testdata__95.txt");
 //        ArrayList<ArrayList<Double>> table = load("CS170_small_special_testdata__99.txt");
-//        ArrayList<ArrayList<Double>> table = load("smalltest");
 //        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__49.txt");
+//        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__79.txt");
 
 
 
