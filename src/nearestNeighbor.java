@@ -1,3 +1,4 @@
+import javax.swing.plaf.IconUIResource;
 import java.io.*;
 import java.nio.Buffer;
 import java.nio.DoubleBuffer;
@@ -10,23 +11,158 @@ import java.util.stream.Collectors;
 public class nearestNeighbor {
 
 
-    static void search(ArrayList<ArrayList<Double>> data){
+    static void backward_search(ArrayList<ArrayList<Double>> data){
+        ArrayList<Integer>current_set_of_features = new ArrayList<>();
+        //init all features to the set
+        for (int i = 1; i < data.get(0).size(); i++) {
+            current_set_of_features.add(i);
+        }
+
+        Integer feature_to_remove_at_this_level = null;
+        Double best_so_far_accuracy;
+        Double accuracy;
+
+        System.out.println("Beginning Search.");
+        Double overall_best_accuracy = 0.0;
+        ArrayList<Integer> overall_best_set = null;
+
+        //go through for each feature/column remove one
+        for(int i = 1; i < data.get(0).size()-1; i++){
+//            System.out.println("On the " + (i+1) + "th level of the search tree");
+
+            best_so_far_accuracy = Double.valueOf(0);
+            for (int k = 1; k < data.get(0).size(); k++){//start at zero for full current set
+                if(current_set_of_features.contains(k)){
+//                    System.out.println("--Considering removing the "+ k + " feature");
+                    accuracy = backward_leave_one_out_cross_validation(data, current_set_of_features, k);
+                    //NOTE: that this function removes k from current_set. we should add it when done printing output
+                    System.out.println("\tUsing feature(s) " + current_set_of_features + " accuracy is " + String.format("%,.1f", (accuracy*100)) + "%");
+                    current_set_of_features.add(k);
+                    Collections.sort(current_set_of_features);//I don't think we have to do this but it sorts the list
+                    if(accuracy > best_so_far_accuracy){
+                        best_so_far_accuracy = accuracy;
+                        feature_to_remove_at_this_level = k;
+                    }
+                }
+            }
+            //because feature_to_remove_at_this_level is an Integer object and not an int
+            //arraylist remove Object searches for that Integer
+            current_set_of_features.remove(feature_to_remove_at_this_level);
+
+            System.out.println("Feature set " + current_set_of_features + " was best, accuracy is "
+                    + String.format("%,.1f", (best_so_far_accuracy*100)) + "%");
+            if(best_so_far_accuracy > overall_best_accuracy){
+                overall_best_accuracy = best_so_far_accuracy;
+                overall_best_set = new ArrayList<>(current_set_of_features);
+            }
+        }
+
+        System.out.println("Finished search!! The best feature subset is " + overall_best_set
+                + ", which has an accuracy of " + String.format("%,.1f", (overall_best_accuracy*100)) + "%");
+    }
+
+    static Double backward_leave_one_out_cross_validation(ArrayList<ArrayList<Double>> data,
+                                                         ArrayList<Integer> current_set, //make sure to add the feature to this set to track
+                                                         Integer feature_to_remove){
+        //Copy Here so we don't alter Arraylist data
+        ArrayList<ArrayList<Double>> local_copy = new ArrayList<ArrayList<Double>>();
+        for (int i = 0; i < data.size(); i++) {
+            local_copy.add(new ArrayList<Double>(data.get(i)));
+        }
+
+        //zero all columns we are not using but, skip over the first column
+        current_set.remove(current_set.indexOf(feature_to_remove));
+        for (int i = 1; i < local_copy.get(i).size(); i++) {
+            if(!current_set.contains(i)){
+                zero_a_feature(local_copy,i);
+            }
+        }
+
+//        print(local_copy);
+//        System.out.println(local_copy.get(0));
+
+
+
+        int number_correctly_classified = 0;
+        ArrayList<Double> object_to_classify;
+        Double label_object_to_classify;
+
+        Double nearest_neighbor_distance;
+        Integer nearest_neighbor_location;
+        Double distance;
+
+        Double nearest_neighbor_label = null;
+
+        //loop over number of objects/rows
+        for(int i = 0; i < local_copy.size(); i++){
+            //sublist to skip over the validation column
+            object_to_classify = new ArrayList<Double>(local_copy.get(i).subList(1,local_copy.get(i).size()));
+            label_object_to_classify = local_copy.get(i).get(0);//validation value
+//            System.out.println("\tLooping over i, at the " + (i+1) + " location");
+//            System.out.println("\tThe " + (i+1) + "th object is in class " + (label_object_to_classify+1));
+            nearest_neighbor_distance = Double.MAX_VALUE;
+            nearest_neighbor_location = Integer.MAX_VALUE;
+            for(int k = 0; k < local_copy.size(); k++){
+                if(k != i){
+//                    System.out.println("\tAsk if " + (i+1) + " is nearest neighbor with " + (k+1));
+                    ArrayList<Double> neighbor_test = new ArrayList<>(local_copy.get(k).subList(1,local_copy.get(k).size()));
+                    distance = calc_euclidean_distance(object_to_classify, neighbor_test);
+                    if(distance < nearest_neighbor_distance){
+                        nearest_neighbor_distance = distance;
+                        nearest_neighbor_location = k;
+                        nearest_neighbor_label = local_copy.get(nearest_neighbor_location).get(0);//remember that label is first column
+                    }
+                }
+            }
+            if(label_object_to_classify.equals(nearest_neighbor_label)){
+                number_correctly_classified++;
+            }
+//            System.out.println("Object " + (i+1) + " is class " + (label_object_to_classify+1));
+//            System.out.println("Its nearest neighbor is " + (nearest_neighbor_location+1)
+//                    + " which is in class " + (nearest_neighbor_label+1));
+        }
+
+        Double accuracy = Double.valueOf(number_correctly_classified) / Double.valueOf(data.size());
+        //BEST DEBUG OUTPUT HERE
+//        System.out.println("k: " + feature_to_add + " current set: " + current_set + " accuracy: " + accuracy);
+//        System.out.println("\tUsing feature(s) " + current_set + " accuracy is " + String.format("%,.1f", (accuracy*100)) + "%");
+//        current_set.remove(current_set.size()-1);
+        return accuracy;
+//        Random r = new Random();
+//        return r.nextDouble();
+    }
+
+
+
+
+
+
+
+
+
+    static void forward_search(ArrayList<ArrayList<Double>> data){
         ArrayList<Integer>current_set_of_features = new ArrayList<>();//Init empty set
         //I think this is a single value...
-        //ArrayList<Integer>feature_to_add_at_this_level;
         Integer feature_to_add_at_this_level = null;
         Double best_so_far_accuracy;
         Double accuracy;
 
+        System.out.println("Beginning Search.");
+        Double overall_best_accuracy = 0.0;
+        ArrayList<Integer> overall_best_set = null;
+
         //go through for each feature/column
-        for(int i = 0; i < data.get(0).size(); i++){
+        for(int i = 0; i < data.get(0).size() - 1; i++){
 //            System.out.println("On the " + (i+1) + "th level of the search tree");
 
             best_so_far_accuracy = Double.valueOf(0);
             for (int k = 1; k < data.get(0).size(); k++){
                 if(!current_set_of_features.contains(k)){
-//                    System.out.println("--Considering adding the "+ (k+1) + " feature");
-                    accuracy = leave_one_out_cross_validation(data, current_set_of_features, k);
+//                    System.out.println("--Considering adding the "+ k + " feature");
+                    accuracy = forward_leave_one_out_cross_validation(data, current_set_of_features, k);
+                    //NOTE that this function adds k to current_set. we should remove it when done printing output
+                    System.out.println("\tUsing feature(s) " + current_set_of_features + " accuracy is " + String.format("%,.1f", (accuracy*100)) + "%");
+                    current_set_of_features.remove(current_set_of_features.indexOf(k));
                     if(accuracy > best_so_far_accuracy){
                         best_so_far_accuracy = accuracy;
                         feature_to_add_at_this_level = k;
@@ -36,26 +172,34 @@ public class nearestNeighbor {
             current_set_of_features.add(feature_to_add_at_this_level);
 //            System.out.println("On level " + (i+1) + " i, added feature "
 //                    + (feature_to_add_at_this_level+1) + " to current set\n");
+
+            System.out.println("Feature set " + current_set_of_features + " was best, accuracy is "
+                    + String.format("%,.1f", (best_so_far_accuracy*100)) + "%");
+            if(best_so_far_accuracy > overall_best_accuracy){
+                overall_best_accuracy = best_so_far_accuracy;
+                overall_best_set = new ArrayList<>(current_set_of_features);
+            }
         }
+        System.out.println("Finished search!! The best feature subset is " + overall_best_set
+                + ", which has an accuracy of " + String.format("%,.1f", (overall_best_accuracy*100)) + "%");
     }
 
-    static Double leave_one_out_cross_validation(ArrayList<ArrayList<Double>> data,
+    //This is nearest neighbor?
+    static Double forward_leave_one_out_cross_validation(ArrayList<ArrayList<Double>> data,
                                                 ArrayList<Integer> current_set, //make sure to add the feature to this set to track
                                                 Integer feature_to_add){
 
-
-        ArrayList<ArrayList<Double>> local_copy = new ArrayList<ArrayList<Double>>();
         //Copy Here so we don't alter Arraylist data
+        ArrayList<ArrayList<Double>> local_copy = new ArrayList<ArrayList<Double>>();
         for (int i = 0; i < data.size(); i++) {
-             local_copy.add(new ArrayList<Double>(data.get(i)));// = new ArrayList<Double>(data.get(i));
+             local_copy.add(new ArrayList<Double>(data.get(i)));
         }
 
-        //zero all columns we are not using
-        for (int i = 1; i < local_copy.get(i).size(); i++) {//skip over first column
-            if(!feature_to_add.equals(i)){
-                if( !current_set.contains(i)){
-                    zero_a_feature(local_copy,i);
-                }
+        current_set.add(feature_to_add);
+        //zero all columns we are not using but, skip over the first column
+        for (int i = 1; i < local_copy.get(i).size(); i++) {
+            if( !current_set.contains(i)){
+                zero_a_feature(local_copy,i);
             }
         }
 
@@ -100,17 +244,14 @@ public class nearestNeighbor {
 //                    + " which is in class " + (nearest_neighbor_label+1));
         }
 
-        Double solution = Double.valueOf(number_correctly_classified) / Double.valueOf(data.size());
+        Double accuracy = Double.valueOf(number_correctly_classified) / Double.valueOf(data.size());
         //BEST DEBUG OUTPUT HERE
-        System.out.println("k: " + feature_to_add + " current set: " + current_set + " accuracy: " + solution);
-        return solution;
+//        System.out.println("k: " + feature_to_add + " current set: " + current_set + " accuracy: " + accuracy);
+//        System.out.println("\tUsing feature(s) " + current_set + " accuracy is " + String.format("%,.1f", (accuracy*100)) + "%");
+        return accuracy;
 //        Random r = new Random();
 //        return r.nextDouble();
     }
-
-
-
-
 
 
     ////----------------------------------------------------------------------------------------------------
@@ -168,18 +309,33 @@ public class nearestNeighbor {
 
 
 
+    // table.get(0).size() returns col count which is # of features
+    //This assumes that all column counts are the same
+    // table.size() returns row count which is # of entries
 
     public static void main(String[] args){
-//        ArrayList<ArrayList<Double>> l = load("CS170_SMALLtestdata__1.txt");
-        ArrayList<ArrayList<Double>> l = load("CS170_small_special_testdata__95.txt");
-//        ArrayList<ArrayList<Double>> l = load("CS170_small_special_testdata__99.txt");
-//        ArrayList<ArrayList<Double>> l = load("smalltest");
+        ArrayList<ArrayList<Double>> table = load("CS170_SMALLtestdata__1.txt");
+//        ArrayList<ArrayList<Double>> table = load("CS170_small_special_testdata__95.txt");
+//        ArrayList<ArrayList<Double>> table = load("CS170_small_special_testdata__99.txt");
+//        ArrayList<ArrayList<Double>> table = load("smalltest");
+//        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__49.txt");
 
-        // l.get(0).size() returns col count which is # of features
-        //This assumes that all column counts are the same
-        // l.size() returns row count which is # of entries
 
-        search(l);
+
+        ArrayList<Integer> all_features = new ArrayList<>();
+        for (int i = 1; i < table.get(0).size(); i++) {
+            all_features.add(i);
+        }
+        Double full_set_percentage = forward_leave_one_out_cross_validation(table,all_features,null);
+
+//        System.out.println("This dataset has " + (table.get(0).size()-1) + " features (not including the class attribute)" +
+//                " with " + table.size() + " instances.\nRunning nearest neighbor with all " + (table.get(0).size()-1) +
+//                " features, using \"leaving-one-out\" evaluation, I get an accuracy of "
+//                + String.format("%,.1f", (full_set_percentage*100)) + "%");
+
+//        forward_search(table);
+
+        backward_search(table);
 
     }
 }
