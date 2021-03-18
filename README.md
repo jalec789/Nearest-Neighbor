@@ -11,7 +11,7 @@ This program runs forward and backward feature selection using nearest neighbor.
 class_object_1 feature_1 feature_2 ... feature_n
 class_object_2 feature_1 feature_2 ... feature_n
 ...
-class_object_n feature_1 feature_2 ... feature_n
+class_object_m feature_1 feature_2 ... feature_n
 ```
 Each row is an object. The first column will be used to verify the class. The following columns will be the features of that object.
 
