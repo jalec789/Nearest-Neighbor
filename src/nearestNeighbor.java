@@ -74,17 +74,16 @@ public class nearestNeighbor {
         }
 
         //zero all columns we are not using but, skip over the first column
-        current_set.remove(current_set.indexOf(feature_to_remove));
+        if(feature_to_remove != null) {
+            current_set.remove(current_set.indexOf(feature_to_remove));
+        }
         for (int i = 1; i < local_copy.get(i).size(); i++) {
             if(!current_set.contains(i)){
                 zero_a_feature(local_copy,i);
             }
         }
 
-//        print(local_copy);
 //        System.out.println(local_copy.get(0));
-
-
 
         int number_correctly_classified = 0;
         ArrayList<Double> object_to_classify;
@@ -134,9 +133,6 @@ public class nearestNeighbor {
 //        Random r = new Random();
 //        return r.nextDouble();
     }
-
-
-
 
 
 
@@ -208,7 +204,9 @@ public class nearestNeighbor {
              local_copy.add(new ArrayList<Double>(data.get(i)));
         }
 
-        current_set.add(feature_to_add);
+        if(feature_to_add != null){
+            current_set.add(feature_to_add);
+        }
         //zero all columns we are not using but, skip over the first column
         for (int i = 1; i < local_copy.get(i).size(); i++) {
             if( !current_set.contains(i)){
@@ -216,7 +214,7 @@ public class nearestNeighbor {
             }
         }
 
-
+//        System.out.println(local_copy.get(0));
 
         int number_correctly_classified = 0;
         ArrayList<Double> object_to_classify;
@@ -265,6 +263,12 @@ public class nearestNeighbor {
 //        Random r = new Random();
 //        return r.nextDouble();
     }
+
+
+
+
+
+
 
 
     ////----------------------------------------------------------------------------------------------------
@@ -327,13 +331,22 @@ public class nearestNeighbor {
     // table.size() returns row count which is # of entries
 
     public static void main(String[] args){
-        ArrayList<ArrayList<Double>> table = load("CS170_SMALLtestdata__1.txt");
-//        ArrayList<ArrayList<Double>> table = load("CS170_small_special_testdata__95.txt");
-//        ArrayList<ArrayList<Double>> table = load("CS170_small_special_testdata__99.txt");
+//        ArrayList<ArrayList<Double>> table = load("../CS170_SMALLtestdata__1.txt");
+//        ArrayList<ArrayList<Double>> table = load("../CS170_small_special_testdata__95.txt");
+//        ArrayList<ArrayList<Double>> table = load("../CS170_small_special_testdata__99.txt");
+//        ArrayList<ArrayList<Double>> table = load("../CS170_largetestdata__49.txt");
+//        ArrayList<ArrayList<Double>> table = load("../CS170_SMALLtestdata__79.txt");
 //        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__49.txt");
-//        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__79.txt");
 
-
+//        System.out.println(args[0]);
+        ArrayList<ArrayList<Double>> table;
+        if(args.length == 1){
+            System.out.println("Loading file " + args[0]);
+            table = load(args[0]);
+        }else{
+            System.out.println("Program needs 1 input file as an argument");
+            return;
+        }
 
         ArrayList<Integer> all_features = new ArrayList<>();
         for (int i = 1; i < table.get(0).size(); i++) {
@@ -341,14 +354,49 @@ public class nearestNeighbor {
         }
         Double full_set_percentage = forward_leave_one_out_cross_validation(table,all_features,null);
 
-//        System.out.println("This dataset has " + (table.get(0).size()-1) + " features (not including the class attribute)" +
-//                " with " + table.size() + " instances.\nRunning nearest neighbor with all " + (table.get(0).size()-1) +
-//                " features, using \"leaving-one-out\" evaluation, I get an accuracy of "
-//                + String.format("%,.1f", (full_set_percentage*100)) + "%");
+        System.out.println("This dataset has " + (table.get(0).size()-1) + " features (not including the class attribute)" +
+                " with " + table.size() + " instances.\nRunning nearest neighbor with all " + (table.get(0).size()-1) +
+                " features, using \"leaving-one-out\" evaluation, I get an accuracy of "
+                + String.format("%,.1f", (full_set_percentage*100)) + "%");
+
+//        ArrayList<Integer> list= new ArrayList<>();
+//        for (int i = 1; i < table.get(0).size()-2; i++) {
+//            list.add(i);
+//        }
+//        System.out.println(all_features);
+//        System.out.println(list);
+//        Double a = forward_leave_one_out_cross_validation(table, list,99);
+//        Double b = backward_leave_one_out_cross_validation(table, all_features,100);
+//        System.out.println("a: " + a + "\nb: " + b);
 
 //        forward_search(table);
+//        backward_search(table);
 
-        backward_search(table);
 
+        String choice = "1";
+        String home = "\nWELCOME TO JASON CHAN'S FEATURE SELECTOR USING NEAREST NEIGHBOR\n" +
+                "Select an option to search\n" +
+                "Type [1] for Forward Search\n" +
+                "Type [2] for Backward Search\n" +
+                "Type anything else to exit\n" +
+                "Enter option: ";
+        do{
+            System.out.print(home);
+            Scanner input = new Scanner(System.in);
+            choice = input.nextLine();
+            switch (choice){
+                case "1":
+                    forward_search(table);
+                    break;
+
+                case "2":
+                    backward_search(table);
+                    break;
+
+                default:
+                    System.out.println("EXITING...");
+                    break;
+            }
+        }while(choice.equals("1") || choice.equals("2"));
     }
 }
