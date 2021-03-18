@@ -23,12 +23,12 @@ This is a less formal way to build but the quick version is here. The argument i
 ```
 cd src
 javac nearestNeighbor.java 
-java nearestNeighbor ../CS170_SMALLtestdata__79.txt
+java nearestNeighbor ../CS170_SMALLtestdata__49.txt
 ```
 OR a different file
 ```
 cd src
 javac nearestNeighbor.java 
-java nearestNeighbor ../CS170_largetestdata__49.txt
+java nearestNeighbor ../CS170_largetestdata__79.txt
 ```
 Then just follow the menu items on the screen.
