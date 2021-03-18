@@ -53,7 +53,9 @@ public class nearestNeighbor {
             System.out.println("Feature set " + current_set_of_features + " was best, accuracy is "
                     + String.format("%,.1f", (best_so_far_accuracy*100)) + "%");
             writer.println(current_set_of_features + "\t" + String.format("%,.1f", (best_so_far_accuracy*100)));
-            if(best_so_far_accuracy > overall_best_accuracy){
+            //since this search traverses backwards and we generally want less features
+            //we did >= since succeeding accuracy results will have sets with less features
+            if(best_so_far_accuracy >= overall_best_accuracy){
                 overall_best_accuracy = best_so_far_accuracy;
                 overall_best_set = new ArrayList<>(current_set_of_features);
             }
@@ -336,7 +338,10 @@ public class nearestNeighbor {
 //        ArrayList<ArrayList<Double>> table = load("../CS170_small_special_testdata__99.txt");
 //        ArrayList<ArrayList<Double>> table = load("../CS170_largetestdata__49.txt");
 //        ArrayList<ArrayList<Double>> table = load("../CS170_SMALLtestdata__79.txt");
-//        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__49.txt");
+
+        //Assigned data...
+//        ArrayList<ArrayList<Double>> table = load("CS170_SMALLtestdata__49.txt");
+//        ArrayList<ArrayList<Double>> table = load("CS170_largetestdata__79.txt");
 
 //        System.out.println(args[0]);
         ArrayList<ArrayList<Double>> table;
