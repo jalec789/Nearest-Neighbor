@@ -35,4 +35,4 @@ cd src
 javac nearestNeighbor.java 
 java nearestNeighbor ../CS170_largetestdata__79.txt
 ```
-Then just follow the menu items on the screen. You should be given the choice to run forward and backward selection. Once done you have the choice to exit or run the other algorithm as well.
+Then just follow the menu items on the screen. You should be given the choice to run forward and backward selection. Once done you have the choice to exit or run the other algorithm as well. An excel output file (with tabs) is also provided in case you would like to graph all feature sets processed.
